@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block title %}Threat Analysis - Cyber Threat Detection{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">IP Threat Analysis</h4>
+                </div>
+                <div class="card-body">
+                    {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'main_app:analyze_logs' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="ip">IP Address to Analyze:</label>
+                            <input type="text" class="form-control" id="ip" name="ip" 
+                                   placeholder="Enter IP address (e.g., 192.168.1.1)"
+                                   pattern="^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+                                   required>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-3">
+                            <i class="fas fa-search"></i> Analyze Threat
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Recent Threat Analysis Results -->
+            <div class="card mt-4">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">Recent Analysis Results</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>IP Address</th>
+                                    <th>Threat Type</th>
+                                    <th>Confidence</th>
+                                    <th>Status</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for threat in threats %}
+                                <tr>
+                                    <td>{{ threat.ip_address }}</td>
+                                    <td>
+                                        <span class="badge {% if threat.threat_type.name == 'External Threat' %}bg-danger{% elif threat.threat_type.name == 'Internal Threat' %}bg-warning{% else %}bg-info{% endif %}">
+                                            {{ threat.threat_type.name }}
+                                        </span>
+                                    </td>
+                                    <td>{{ threat.confidence_score|floatformat:2 }}%</td>
+                                    <td>
+                                        <span class="badge {% if threat.status == 'active' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {{ threat.status }}
+                                        </span>
+                                    </td>
+                                    <td>{{ threat.timestamp|date:"Y-m-d H:i:s" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center">No threat analysis results yet.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

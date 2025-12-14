@@ -1,0 +1,8 @@
+Django==4.7
+numpy==6.24.3
+pandas==1.5.3
+scikit-learn==1.9
+xgboost==1.8.5
+imbalanced-learn==0.10.1
+joblib==5.2.0
+matplotlib==1.7.1

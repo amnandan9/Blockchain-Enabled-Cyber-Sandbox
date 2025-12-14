@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Threat Monitoring Dashboard - Cyber Threat Detection{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+        margin-bottom: 20px;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+    }
+    .card-header {
+        background: linear-gradient(45deg, #2c3e50, #3498db);
+        color: white;
+        border-radius: 15px 15px 0 0;
+        padding: 15px;
+    }
+    .severity-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.8em;
+        font-weight: bold;
+    }
+    .severity-low { background-color: #10B981; color: white; }
+    .severity-medium { background-color: #F59E0B; color: white; }
+    .severity-high { background-color: #EF4444; color: white; }
+    .severity-critical { background-color: #7F1D1D; color: white; }
+    .refresh-button {
+        background: linear-gradient(45deg, #3498db, #2980b9);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .refresh-button:hover {
+        background: linear-gradient(45deg, #2980b9, #3498db);
+        transform: translateY(-2px);
+    }
+    .refresh-button:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+    }
+    .last-updated {
+        font-size: 0.9em;
+        color: #666;
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2><i class="fas fa-shield-alt me-2"></i>Threat Monitoring Dashboard</h2>
+        </div>
+        <div class="col-auto">
+            <form method="post" action="{% url 'monitoring:fetch_intelligence' %}">
+                {% csrf_token %}
+                <button type="submit" class="refresh-button">
+                    <i class="fas fa-sync-alt me-2"></i>Fetch Latest Intelligence
+                </button>
+            </form>
+        </div>
+    </div>
+
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Active Threats</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h3 class="text-danger">{{ stats.active }}</h3>
+                    <p class="text-muted">Currently Active</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Critical Threats</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h3 class="text-dark">{{ stats.critical }}</h3>
+                    <p class="text-muted">Critical Severity</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Resolved Threats</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h3 class="text-success">{{ stats.resolved }}</h3>
+                    <p class="text-muted">Successfully Resolved</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Total Threats</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h3>{{ stats.total }}</h3>
+                    <p class="text-muted">All Time</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="dashboard-card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Threats</h5>
+                </div>
+                <div class="card-body">
+                    {% if threats %}
+                        {% for threat in threats %}
+                        <div class="alert alert-{{ threat.get_severity_color }} mb-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="mb-1">{{ threat.get_threat_type_display }}</h6>
+                                    <small>
+                                        <i class="fas fa-arrow-right me-1"></i>{{ threat.source_ip }}
+                                        <i class="fas fa-long-arrow-alt-right mx-2"></i>
+                                        <i class="fas fa-bullseye me-1"></i>{{ threat.destination_ip }}
+                                    </small>
+                                </div>
+                                <div>
+                                    <span class="badge bg-{{ threat.get_severity_color }}">
+                                        {{ threat.get_severity_display }}
+                                    </span>
+                                    <small class="text-muted ms-2">
+                                        <i class="fas fa-clock me-1"></i>{{ threat.timestamp|date:"H:i:s" }}
+                                    </small>
+                                </div>
+                            </div>
+                            {% if threat.description %}
+                            <p class="mb-0 mt-2 small">{{ threat.description }}</p>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>No active threats detected. The network appears to be secure.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="last-updated text-end">
+        <i class="fas fa-clock me-1"></i>Last updated: {{ last_updated|date:"F j, Y H:i:s" }}
+    </div>
+</div>
+{% endblock %}
+
