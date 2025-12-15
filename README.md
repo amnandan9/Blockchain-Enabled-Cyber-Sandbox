@@ -7,7 +7,10 @@ This platform is a cutting-edge solution that merges **Artificial Intelligence (
 The core innovation is the inclusion of a **Cyber Sandbox Environment** for safe, controlled analysis of threats. 
 
 Blockchain ensures secure, trusted intelligence exchange and immutable log integrity, solving trust issues in shared data. AI provides the power of real-time detection, prediction, and automated analysis.
-
+***
+**Note:**
+This repository focuses on project documentation, architecture, and selected implementation components for academic submission. The system was developed and tested locally, with additional modules demonstrated during offline evaluation.
+***
 ## 🔥 Why This Matters: Solving Critical Security Gaps
 
 Traditional systems are crippled by fragmentation, trust issues, and the risk of testing malicious code on live networks. We eliminate these risks:
